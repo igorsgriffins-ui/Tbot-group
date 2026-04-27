@@ -20,7 +20,7 @@ def run():
     while True:
         now = datetime.now(timezone).strftime("%H:%M")
         
-        for i in range(1, 4):
+        for i in range(1, 100):
             msg = os.getenv(f"MSG_{i}")
             t = os.getenv(f"TIME_{i}")
             
