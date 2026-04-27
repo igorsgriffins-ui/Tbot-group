@@ -5,7 +5,7 @@ from datetime import datetime
 import pytz
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-GROUP_IDS = [os.getenv("GROUP_ID_1"), os.getenv("GROUP_ID_2")]
+GROUP_IDS = [gid for gid in os.getenv("GROUP_IDS", "").split(",") if gid]
 
 timezone = pytz.timezone("Asia/Karachi")
 
