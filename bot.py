@@ -34,6 +34,9 @@ GROUP_IDS = [gid for gid in [
 # 🔹 Pakistan timezone
 timezone = pytz.timezone("Asia/Karachi")
 
+# 🔹 Track sent messages (avoid duplicates)
+sent_today = {}
+
 # 🔹 Send message function
 def send(msg):
     for chat_id in GROUP_IDS:
@@ -42,31 +45,42 @@ def send(msg):
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
                 data={"chat_id": chat_id, "text": msg}
             )
+            time.sleep(0.5)  # anti-spam delay
         except Exception as e:
             print("Error sending:", e)
 
-# 🔹 Main loop (unlimited MSG/TIME support)
+# 🔹 Main loop (FIXED scheduling)
 def run():
+    global sent_today
+
     while True:
-        now = datetime.now(timezone).strftime("%H:%M")
+        now_dt = datetime.now(timezone)
+        now_time = now_dt.strftime("%H:%M")
+        today = now_dt.strftime("%Y-%m-%d")
+
+        # reset daily tracking
+        if "date" not in sent_today or sent_today.get("date") != today:
+            sent_today = {"date": today}
 
         i = 1
         while True:
             msg = os.getenv(f"MSG_{i}")
             t = os.getenv(f"TIME_{i}")
 
-            # stop when no more variables
             if not msg or not t:
                 break
 
-            if t == now:
-                print(f"Sending MSG_{i} at {now}")
+            key = f"{today}_{i}"
+
+            # 🔥 FIX: allow 1-minute window instead of exact match
+            if t == now_time and key not in sent_today:
+                print(f"Sending MSG_{i} at {now_time}")
                 send(msg)
-                time.sleep(60)  # prevent duplicate sends
+                sent_today[key] = True
 
             i += 1
 
-        time.sleep(1)
+        time.sleep(10)  # check every 10 sec (stable)
 
 # 🔹 Start bot
 run()
